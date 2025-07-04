@@ -78,21 +78,29 @@ if existing_files:
 else:
     st.info("No documents uploaded yet.")
 
-# Upload new files
+# Initialize upload key
+if "upload_key" not in st.session_state:
+    st.session_state.upload_key = 0
+
 st.write("##### Upload New Documents:")
 uploaded_files = st.file_uploader(
     "Upload any supporting documents",
     type=["pdf", "docx", "png", "jpg"],
-    accept_multiple_files=True
+    accept_multiple_files=True,
+    key=f"uploader_{st.session_state.upload_key}"  # dynamic key
 )
 
 if uploaded_files:
-    new_files = []
+    new_files = [file.name for file in uploaded_files]
 
-    for file in uploaded_files:
-        new_files.append(file.name)  # Store name only
-
-    # Merge and update Firestore
+    # Merge with existing files and update Firestore
     all_files = list(set(existing_files + new_files))
     doc_ref.set({"UploadedFiles": all_files}, merge=True)
+
     st.success(f"Uploaded {len(new_files)} new file(s).")
+
+    # Increment key to reset uploader
+    st.session_state.upload_key += 1
+
+    # Rerun after changing key
+    st.rerun()
