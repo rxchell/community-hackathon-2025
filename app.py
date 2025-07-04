@@ -1,12 +1,33 @@
 import streamlit as st
-
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+from utils.session_manager import get_selected_user
 
 def login():
-    if st.button("Login"):
-        st.session_state.logged_in = True
-        st.rerun()
+    col1, col2 = st.columns([0.8, 0.2])
+    with col2:
+        st.button("Login", on_click=_login)
+    st.markdown("""
+        <style>
+            .centered-title {
+                text-align: center;
+                padding-top: 100px;
+                font-size: 45px;
+                font-weight: 700;
+                color: #2C3E50;
+            }
+            .subtitle {
+                text-align: center;
+                font-size: 20px;
+                color: #7F8C8D;
+                margin-top: 10px;
+                margin-bottom: 40px;
+            }
+        </style>
+        <div class="centered-title">Safe Shelter</div>
+        <div class="subtitle">Connecting lives to a home, with dignity and care.</div>
+    """, unsafe_allow_html=True)
+
+def _login():
+    st.session_state.logged_in = True
 
 def logout():
     if st.button("Log out"):
@@ -26,16 +47,22 @@ external_correspondence_page = st.Page("collaboration/external_correspondence.py
 case_status_page = st.Page("case_progress/case_status.py", title="Case Status", icon=":material/app_badging:")
 timeline_page = st.Page("case_progress/timeline.py", title="Timeline", icon=":material/timeline:")
 
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
 if st.session_state.logged_in:
-    pg = st.navigation(
-        {
-            "Account":[home_page, logout_page],
+    menu = {"Account": [home_page, logout_page]}
+
+    selected_user = get_selected_user()
+    if selected_user is not None and selected_user != "":
+        menu.update({
             "Client Profile": [client_details_page, past_intervention_page, supporting_documents_page],
             "Assessment and Planning": [assessment_page, case_plan_page],
             "Collaboration": [members_page, external_correspondence_page],
             "Case Progress": [case_status_page, timeline_page]
-        }
-    )
+        })
+    
+    pg = st.navigation(menu)
 else:
     pg = st.navigation([login_page])
 
