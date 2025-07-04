@@ -1,23 +1,8 @@
 import streamlit as st
-import json
-import os
-from google.cloud import firestore
-from google.oauth2 import service_account
+from utils.firestore_client import get_user_data, get_user_doc
 
-# Load credentials and initialise Forestore
-key_dict = json.loads(st.secrets["textkey"])
-creds = service_account.Credentials.from_service_account_info(key_dict)
-db = firestore.Client(credentials=creds, project="community-hackathon-2025")
-
-# Fetch client profile
-doc_id = "mdQpw2iiKZlQ6WhK4sn3"
-doc_ref = db.collection("client_profile").document(doc_id)
-doc = doc_ref.get()
-
-if doc.exists:
-    user_data = doc.to_dict()
-else:
-    user_data = {}  # Empty if doc doesn't exist
+user_data = get_user_data("mdQpw2iiKZlQ6WhK4sn3")
+doc_ref = get_user_doc("mdQpw2iiKZlQ6WhK4sn3")
 
 # Row with Edit Toggle
 header_col1, header_col2 = st.columns([0.8, 0.2])

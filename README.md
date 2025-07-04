@@ -6,4 +6,5 @@
 - Run the app: `streamlit run app.py`
 
 ### Tech Stack
-
+- Streamlit
+- Firebase (Firestore)
