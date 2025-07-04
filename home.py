@@ -26,6 +26,8 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+st.header("")
+
 users = get_all_users()
 user_names = [u["name"] for u in users]
 
