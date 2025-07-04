@@ -4,9 +4,32 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 def login():
-    if st.button("Login"):
-        st.session_state.logged_in = True
-        st.rerun()
+    col1, col2 = st.columns([0.8, 0.2])
+    with col2:
+        st.button("Login", on_click=_login)
+    st.markdown("""
+        <style>
+            .centered-title {
+                text-align: center;
+                padding-top: 100px;
+                font-size: 45px;
+                font-weight: 700;
+                color: #2C3E50;
+            }
+            .subtitle {
+                text-align: center;
+                font-size: 20px;
+                color: #7F8C8D;
+                margin-top: 10px;
+                margin-bottom: 40px;
+            }
+        </style>
+        <div class="centered-title">Safe Shelter</div>
+        <div class="subtitle">Connecting lives to a home, with dignity and care.</div>
+    """, unsafe_allow_html=True)
+
+def _login():
+    st.session_state.logged_in = True
 
 def logout():
     if st.button("Log out"):
