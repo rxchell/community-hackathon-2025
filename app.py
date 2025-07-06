@@ -1,43 +1,87 @@
 import streamlit as st
 from utils.session_manager import get_selected_user
 
+def _login():
+    st.session_state.logged_in = True
+
 def login():
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image("assets/SafeShelter.png", width=300)
+
     st.markdown("""
         <style>
         .centered {
             text-align: center;
             padding-top: 10px;
         }
-        .title {
-            font-size: 55px;
-            font-weight: bold;
-            color: #2C3E50;
-        }
         .subtitle {
             font-size: 30px;
-            color: #7F8C8D;
+            color: #B95741;
             margin-top: 10px;
         }
         </style>
 
         <div class="centered">
-            <div class="title">Safe Shelter</div>
-            <div class="subtitle">Connecting lives to a home, with dignity and care.</div>
+            <div class="subtitle">Streamlining Shelter Referrals with AI</div>
         </div>
     """, unsafe_allow_html=True)
     
+    # CSS to style st.button
+    st.markdown("""
+        <style>
+        div.stButton > button {
+            background-color: #b95741;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 15px 40px;
+            border-radius: 10px;
+            border: none;
+        }
+        div.stButton > button:hover {
+            background-color: #f19484;
+            color: white;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     st.header("")
-    col1, col2 = st.columns([0.4, 0.5])
+    col1, col2 = st.columns([0.3, 0.5])
     with col2:
         st.button("Login", on_click=_login)
 
-def _login():
-    st.session_state.logged_in = True
-
+def _logout():
+    st.session_state.logged_in = False
+    
 def logout():
-    if st.button("Log out"):
-        st.session_state.logged_in = False
-        st.rerun()
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image("assets/SafeShelter.png", width=300)
+
+    # CSS to style st.button
+    st.markdown("""
+        <style>
+        div.stButton > button {
+            background-color: #b95741;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 15px 40px;
+            border-radius: 10px;
+            border: none;
+        }
+        div.stButton > button:hover {
+            background-color: #f19484;
+            color: white;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.header("")
+    col1, col2 = st.columns([0.3, 0.5])
+    with col2:
+        st.button("Logout", on_click=_logout)
 
 login_page = st.Page(login, title="Log in", icon=":material/login:")
 logout_page = st.Page(logout, title="Log out", icon=":material/logout:")

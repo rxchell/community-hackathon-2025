@@ -2,27 +2,25 @@ import streamlit as st
 from utils.firestore_client import get_all_users
 from utils.session_manager import set_selected_user
 
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.image("assets/SafeShelter.png", width=300)
+
 st.markdown("""
     <style>
     .centered {
         text-align: center;
         padding-top: 10px;
     }
-    .title {
-        font-size: 55px;
-        font-weight: bold;
-        color: #2C3E50;
-    }
     .subtitle {
         font-size: 30px;
-        color: #7F8C8D;
+        color: #B95741;
         margin-top: 10px;
     }
     </style>
 
     <div class="centered">
-        <div class="title">Safe Shelter</div>
-        <div class="subtitle">Connecting lives to a home, with dignity and care.</div>
+        <div class="subtitle">Streamlining Shelter Referrals with AI</div>
     </div>
 """, unsafe_allow_html=True)
 
