@@ -5,7 +5,7 @@ import streamlit as st
 
 def get_firestore_client():
     if "firestore_client" not in st.session_state:
-        key_dict = json.loads(st.secrets["textkey"])
+        key_dict = json.loads(st.secrets["firebase"]["textkey"])
         creds = service_account.Credentials.from_service_account_info(key_dict)
         st.session_state.firestore_client = firestore.Client(credentials=creds, project="community-hackathon-2025")
     return st.session_state.firestore_client
