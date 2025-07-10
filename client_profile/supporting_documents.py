@@ -12,6 +12,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 import html
 import re
+import streamlit.components.v1 as components
 
 # Page config
 st.set_page_config(
@@ -61,22 +62,23 @@ st.markdown("""
         background: linear-gradient(135deg, #fdf2f0 0%, #fcebe8 100%);
     }
     
-    /* Custom text area styling */
+    /* Text area styling */
     .stTextArea > div > div > textarea {
-        border: 3px solid #f19484 !important;
-        border-radius: 12px !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px !important;
         font-family: 'Inter', sans-serif !important;
-        font-size: 0.95em !important;
-        line-height: 1.6 !important;
+        font-size: 1em !important;
+        line-height: 1.7 !important;
         background: #fefefe !important;
-        padding: 1rem !important;
+        padding: 1.2rem !important;
         resize: vertical !important;
         min-height: 400px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
     }
     
     .stTextArea > div > div > textarea:focus {
         border-color: #b95741 !important;
-        box-shadow: 0 0 0 3px rgba(241, 148, 132, 0.1) !important;
+        box-shadow: 0 0 0 2px rgba(241, 148, 132, 0.2) !important;
         outline: none !important;
     }
     
@@ -85,6 +87,51 @@ st.markdown("""
         color: #b95741 !important;
         margin-bottom: 0.5rem !important;
         font-size: 1.1em !important;
+    }
+    
+    /* Rich text display */
+    .rich-text-display {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1.2rem;
+        background: #fefefe;
+        min-height: 400px;
+        max-height: 400px;
+        overflow-y: auto;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .rich-text-display .header {
+        color: #b95741;
+        font-weight: 700;
+        font-size: 1.2em;
+        margin-top: 1em;
+        margin-bottom: 0.5em;
+    }
+    
+    .rich-text-display .subheader {
+        color: #b95741;
+        font-weight: 600;
+        font-size: 1.1em;
+        margin-top: 0.8em;
+        margin-bottom: 0.4em;
+    }
+    
+    .rich-text-display .bold {
+        font-weight: 700;
+    }
+    
+    .rich-text-display ul {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+        padding-left: 2em;
+    }
+    
+    .rich-text-display li {
+        margin-bottom: 0.3em;
     }
     
     .summary-container {
@@ -228,52 +275,26 @@ st.markdown("""
         font-size: 0.9em;
     }
     
-    /* Rich text summary styles */
-    .summary-display {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        border: 3px solid #f19484;
-        font-family: 'Inter', sans-serif;
-        line-height: 1.6;
-        margin-bottom: 1rem;
+    /* Toggle button styles */
+    .toggle-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 0.5rem;
     }
     
-    .summary-h1 {
-        font-size: 1.4em;
-        font-weight: 700;
-        color: #b95741;
-        margin: 1em 0 0.5em 0;
-        border-bottom: 2px solid #f19484;
-        padding-bottom: 0.3em;
+    .toggle-button {
+        background: #f19484;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9em;
+        cursor: pointer;
+        transition: all 0.2s ease;
     }
     
-    .summary-h2 {
-        font-size: 1.2em;
-        font-weight: 600;
-        color: #b95741;
-        margin: 1em 0 0.5em 0;
-    }
-    
-    .summary-h3 {
-        font-size: 1.1em;
-        font-weight: 600;
-        color: #333;
-        margin: 1em 0 0.5em 0;
-    }
-    
-    .summary-bullet {
-        padding-left: 1em;
-        margin: 0.3em 0;
-    }
-    
-    .summary-break {
-        height: 0.8em;
-    }
-    
-    /* Hide the default text area when in display mode */
-    .hidden-textarea {
-        display: none;
+    .toggle-button:hover {
+        background: #b95741;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -296,6 +317,10 @@ if 'current_summary' not in st.session_state:
     st.session_state.current_summary = ""
 if 'processing' not in st.session_state:
     st.session_state.processing = False
+if 'display_text' not in st.session_state:
+    st.session_state.display_text = ""
+if 'edit_mode' not in st.session_state:
+    st.session_state.edit_mode = False
 
 # Extract text with OCR
 def extract_text(file, filetype):
@@ -352,6 +377,92 @@ def generate_summary(text, doc_type):
     except Exception as e:
         return f"Error generating summary: {str(e)}"
 
+# Format markdown for better display in text area
+def format_markdown_for_display(text):
+    # Format headers with special characters
+    text = re.sub(r'^# (.*?)$', r'𝗕 \1', text, flags=re.MULTILINE)
+    text = re.sub(r'^## (.*?)$', r'𝗕 \1', text, flags=re.MULTILINE)
+    text = re.sub(r'^### (.*?)$', r'𝗕 \1', text, flags=re.MULTILINE)
+    
+    # Format bold text
+    text = re.sub(r'\*\*(.*?)\*\*', r'𝗕 \1', text)
+    
+    # Format bullet points
+    text = re.sub(r'^\* (.*?)$', r'   ◦ \1', text, flags=re.MULTILINE)
+    text = re.sub(r'^- (.*?)$', r'   ◦ \1', text, flags=re.MULTILINE)
+    
+    # Add spacing between sections for better readability
+    text = re.sub(r'(𝗕 .*?)$', r'\1\n', text, flags=re.MULTILINE)
+    
+    return text
+
+# Convert display format back to standard markdown
+def convert_display_to_markdown(text):
+    # Convert headers back
+    text = re.sub(r'^𝗕 (.*?)$', r'# \1', text, flags=re.MULTILINE)
+    
+    # Convert bold text back
+    text = re.sub(r'𝗕 (.*?)(?=\n|$)', r'**\1**', text, flags=re.MULTILINE)
+    
+    # Convert bullet points back
+    text = re.sub(r'^   ◦ (.*?)$', r'* \1', text, flags=re.MULTILINE)
+    
+    return text
+
+# Convert markdown to HTML for rich display
+def convert_markdown_to_html(text):
+    # Convert headers to HTML with classes
+    text = re.sub(r'^# (.*?)$', r'<div class="header">\1</div>', text, flags=re.MULTILINE)
+    text = re.sub(r'^## (.*?)$', r'<div class="subheader">\1</div>', text, flags=re.MULTILINE)
+    text = re.sub(r'^### (.*?)$', r'<div class="subheader">\1</div>', text, flags=re.MULTILINE)
+    
+    # Start bullet point lists
+    bullet_pattern = re.compile(r'^\* (.*?)$', re.MULTILINE)
+    if bullet_pattern.search(text):
+        # Find all bullet point sections
+        sections = []
+        current_section = []
+        in_list = False
+        
+        for line in text.split('\n'):
+            bullet_match = bullet_pattern.match(line)
+            if bullet_match:
+                if not in_list:
+                    # Start a new list
+                    if current_section:
+                        sections.append('\n'.join(current_section))
+                        current_section = []
+                    current_section.append('<ul>')
+                    in_list = True
+                # Add list item
+                item_content = bullet_match.group(1)
+                # Check for bold text in list items
+                item_content = re.sub(r'\*\*(.*?)\*\*', r'<span class="bold">\1</span>', item_content)
+                current_section.append(f'<li>{item_content}</li>')
+            else:
+                if in_list:
+                    # End the list
+                    current_section.append('</ul>')
+                    sections.append('\n'.join(current_section))
+                    current_section = []
+                    in_list = False
+                # Check for bold text in regular paragraphs
+                line = re.sub(r'\*\*(.*?)\*\*', r'<span class="bold">\1</span>', line)
+                current_section.append(line)
+        
+        # Add any remaining section
+        if in_list:
+            current_section.append('</ul>')
+        if current_section:
+            sections.append('\n'.join(current_section))
+        
+        text = '\n'.join(sections)
+    else:
+        # Just handle bold text if no bullet points
+        text = re.sub(r'\*\*(.*?)\*\*', r'<span class="bold">\1</span>', text)
+    
+    return text
+
 # Clean HTML from text for PDF generation
 def clean_html_for_pdf(html_content):
     # Remove HTML tags and convert to plain text
@@ -381,38 +492,58 @@ def generate_pdf(content, doc_type):
     story.append(Paragraph(f"<b>Document Type:</b> {doc_type}", styles['Normal']))
     story.append(Spacer(1, 12))
     
-    # Clean content and convert to PDF
-    clean_content = clean_html_for_pdf(content)
+    # Create custom styles for headers
+    header_style = ParagraphStyle(
+        'Header',
+        parent=styles['Heading1'],
+        fontSize=14,
+        textColor='#b95741',
+        fontName='Helvetica-Bold'
+    )
+    
+    subheader_style = ParagraphStyle(
+        'Subheader',
+        parent=styles['Heading2'],
+        fontSize=12,
+        textColor='#b95741',
+        fontName='Helvetica-Bold'
+    )
+    
+    # Convert from display format to standard markdown first
+    markdown_content = convert_display_to_markdown(content)
     
     # Split into paragraphs and add to story
-    paragraphs = clean_content.split('\n')
+    paragraphs = markdown_content.split('\n')
     for para in paragraphs:
         if para.strip():
-            story.append(Paragraph(para.strip(), styles['Normal']))
+            # Check if it's a header (# Header)
+            if para.strip().startswith('# '):
+                header_text = para.strip()[2:].strip()
+                story.append(Paragraph(header_text, header_style))
+            # Check if it's a subheader (## Header)
+            elif para.strip().startswith('## '):
+                header_text = para.strip()[3:].strip()
+                story.append(Paragraph(header_text, subheader_style))
+            # Check if it's a bullet point (* )
+            elif para.strip().startswith('* '):
+                bullet_text = para.strip()[2:].strip()
+                # Handle bold text in bullet points
+                bullet_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', bullet_text)
+                story.append(Paragraph(f"• {bullet_text}", styles['Normal']))
+            else:
+                # Handle bold text in regular paragraphs
+                para = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', para.strip())
+                story.append(Paragraph(para, styles['Normal']))
+            
             story.append(Spacer(1, 6))
     
     doc.build(story)
     buffer.seek(0)
     return buffer
 
-# Convert markdown to HTML for display
-def convert_markdown_to_html(text):
-    # Convert headers (# Header) to styled divs
-    text = re.sub(r'^# (.*?)$', r'<div class="summary-h1">\1</div>', text, flags=re.MULTILINE)
-    text = re.sub(r'^## (.*?)$', r'<div class="summary-h2">\1</div>', text, flags=re.MULTILINE)
-    text = re.sub(r'^### (.*?)$', r'<div class="summary-h3">\1</div>', text, flags=re.MULTILINE)
-    
-    # Convert bullet points
-    text = re.sub(r'^\* (.*?)$', r'<div class="summary-bullet">• \1</div>', text, flags=re.MULTILINE)
-    text = re.sub(r'^- (.*?)$', r'<div class="summary-bullet">• \1</div>', text, flags=re.MULTILINE)
-    
-    # Convert bold text
-    text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
-    
-    # Convert line breaks
-    text = text.replace('\n\n', '<div class="summary-break"></div>')
-    
-    return text
+# Toggle edit mode
+def toggle_edit_mode():
+    st.session_state.edit_mode = not st.session_state.edit_mode
 
 # Header
 st.markdown('<div class="main-header">', unsafe_allow_html=True)
@@ -471,6 +602,9 @@ with col1:
             st.session_state.original_summary = ai_summary
             st.session_state.current_summary = ai_summary
             
+            # Format for display
+            st.session_state.display_text = format_markdown_for_display(ai_summary)
+            
             st.session_state.processing = False
             st.success("✅ Document processed successfully!")
             time.sleep(1)
@@ -487,39 +621,52 @@ with col2:
         # Summary header
         st.markdown('<div class="summary-header">AI Generated Summary</div>', unsafe_allow_html=True)
         
-        # Create tabs for viewing formatted and editing plain text
-        tab1, tab2 = st.tabs(["Formatted View", "Edit Text"])
+        # Toggle button for edit mode
+        st.markdown('<div class="toggle-container">', unsafe_allow_html=True)
+        edit_mode_label = "Switch to View Mode" if st.session_state.edit_mode else "Switch to Edit Mode"
+        if st.button(edit_mode_label, key="toggle_edit"):
+            toggle_edit_mode()
+        st.markdown('</div>', unsafe_allow_html=True)
         
-        with tab1:
-            # Display formatted summary
-            formatted_html = convert_markdown_to_html(st.session_state.current_summary)
-            st.markdown(f'<div class="summary-display">{formatted_html}</div>', unsafe_allow_html=True)
-        
-        with tab2:
+        if st.session_state.edit_mode:
             # Editable summary in text area
             edited_summary = st.text_area(
                 "Edit the summary below:",
-                value=st.session_state.current_summary,
+                value=st.session_state.display_text,
                 height=400,
                 key="summary_editor",
                 label_visibility="collapsed"
             )
             
             # Update current summary when edited
-            if edited_summary != st.session_state.current_summary:
-                st.session_state.current_summary = edited_summary
-                st.rerun()  # Refresh to update the formatted view
+            if edited_summary != st.session_state.display_text:
+                # Convert back from display format to standard markdown
+                st.session_state.current_summary = convert_display_to_markdown(edited_summary)
+                # Update display text
+                st.session_state.display_text = edited_summary
+        else:
+            # Display formatted summary
+            markdown_content = convert_display_to_markdown(st.session_state.display_text)
+            html_content = convert_markdown_to_html(markdown_content)
+            st.markdown(f'<div class="rich-text-display">{html_content}</div>', unsafe_allow_html=True)
         
         # Info about editing
-        st.markdown("""
-        <div class="edit-info">
-        💡 <strong>Tip:</strong> Switch to "Edit Text" tab to make changes, then back to "Formatted View" to see the results.
-        </div>
-        """, unsafe_allow_html=True)
+        if st.session_state.edit_mode:
+            st.markdown("""
+            <div class="edit-info">
+            💡 <strong>Tip:</strong> You can edit the summary directly in the box above. Switch to View Mode to see the formatted version.
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="edit-info">
+            💡 <strong>Tip:</strong> Switch to Edit Mode to make changes to the summary.
+            </div>
+            """, unsafe_allow_html=True)
         
         # PDF download
         if st.session_state.current_summary:
-            pdf_buffer = generate_pdf(st.session_state.current_summary, doc_type)
+            pdf_buffer = generate_pdf(st.session_state.display_text, doc_type)
             st.download_button(
                 "📄 Download PDF",
                 pdf_buffer,
