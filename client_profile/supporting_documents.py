@@ -227,6 +227,54 @@ st.markdown("""
         margin-bottom: 1rem;
         font-size: 0.9em;
     }
+    
+    /* Rich text summary styles */
+    .summary-display {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 3px solid #f19484;
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    
+    .summary-h1 {
+        font-size: 1.4em;
+        font-weight: 700;
+        color: #b95741;
+        margin: 1em 0 0.5em 0;
+        border-bottom: 2px solid #f19484;
+        padding-bottom: 0.3em;
+    }
+    
+    .summary-h2 {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #b95741;
+        margin: 1em 0 0.5em 0;
+    }
+    
+    .summary-h3 {
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #333;
+        margin: 1em 0 0.5em 0;
+    }
+    
+    .summary-bullet {
+        padding-left: 1em;
+        margin: 0.3em 0;
+    }
+    
+    .summary-break {
+        height: 0.8em;
+    }
+    
+    /* Hide the default text area when in display mode */
+    .hidden-textarea {
+        display: none;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -347,6 +395,25 @@ def generate_pdf(content, doc_type):
     buffer.seek(0)
     return buffer
 
+# Convert markdown to HTML for display
+def convert_markdown_to_html(text):
+    # Convert headers (# Header) to styled divs
+    text = re.sub(r'^# (.*?)$', r'<div class="summary-h1">\1</div>', text, flags=re.MULTILINE)
+    text = re.sub(r'^## (.*?)$', r'<div class="summary-h2">\1</div>', text, flags=re.MULTILINE)
+    text = re.sub(r'^### (.*?)$', r'<div class="summary-h3">\1</div>', text, flags=re.MULTILINE)
+    
+    # Convert bullet points
+    text = re.sub(r'^\* (.*?)$', r'<div class="summary-bullet">• \1</div>', text, flags=re.MULTILINE)
+    text = re.sub(r'^- (.*?)$', r'<div class="summary-bullet">• \1</div>', text, flags=re.MULTILINE)
+    
+    # Convert bold text
+    text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+    
+    # Convert line breaks
+    text = text.replace('\n\n', '<div class="summary-break"></div>')
+    
+    return text
+
 # Header
 st.markdown('<div class="main-header">', unsafe_allow_html=True)
 col_logo, col_title = st.columns([1, 8])
@@ -420,44 +487,35 @@ with col2:
         # Summary header
         st.markdown('<div class="summary-header">AI Generated Summary</div>', unsafe_allow_html=True)
         
-        # Editable summary in text area with custom styling
-        edited_summary = st.text_area(
-            "Edit the summary below:",
-            value=st.session_state.current_summary,
-            height=400,
-            key="summary_editor",
-            label_visibility="collapsed"
-        )
+        # Create tabs for viewing formatted and editing plain text
+        tab1, tab2 = st.tabs(["Formatted View", "Edit Text"])
         
-        # Update current summary when edited
-        if edited_summary != st.session_state.current_summary:
-            st.session_state.current_summary = edited_summary
+        with tab1:
+            # Display formatted summary
+            formatted_html = convert_markdown_to_html(st.session_state.current_summary)
+            st.markdown(f'<div class="summary-display">{formatted_html}</div>', unsafe_allow_html=True)
+        
+        with tab2:
+            # Editable summary in text area
+            edited_summary = st.text_area(
+                "Edit the summary below:",
+                value=st.session_state.current_summary,
+                height=400,
+                key="summary_editor",
+                label_visibility="collapsed"
+            )
+            
+            # Update current summary when edited
+            if edited_summary != st.session_state.current_summary:
+                st.session_state.current_summary = edited_summary
+                st.rerun()  # Refresh to update the formatted view
         
         # Info about editing
         st.markdown("""
         <div class="edit-info">
-        💡 <strong>Tip:</strong> You can edit the summary above directly. Changes are automatically saved.
+        💡 <strong>Tip:</strong> Switch to "Edit Text" tab to make changes, then back to "Formatted View" to see the results.
         </div>
         """, unsafe_allow_html=True)
-        
-        # Action buttons
-        st.markdown('<div class="action-buttons">', unsafe_allow_html=True)
-        # col_a, col_b, col_c = st.columns(3)
-        
-        # with col_a:
-        #     if st.button("🔄 Revert to Original", use_container_width=True):
-        #         st.session_state.current_summary = st.session_state.original_summary
-        #         st.rerun()
-        
-        # with col_b:
-        #     # Download as TXT
-        #     st.download_button(
-        #         "📄 Download TXT",
-        #         st.session_state.current_summary,
-        #         f"summary_{doc_type.lower().replace(' ', '_')}.txt",
-        #         "text/plain",
-        #         use_container_width=True
-        #     )
         
         # PDF download
         if st.session_state.current_summary:
@@ -469,8 +527,6 @@ with col2:
                 "application/pdf",
                 use_container_width=True
             )
-        
-        st.markdown('</div>', unsafe_allow_html=True)
         
         # Statistics
         if st.session_state.current_summary:
