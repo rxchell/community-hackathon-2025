@@ -451,7 +451,7 @@ with col1:
     
     # Process button
     if uploaded_file:
-        if st.button("🔍  Analyse Document", type="primary", use_container_width=True):
+        if st.button("Analyse Document", type="primary", use_container_width=True):
             st.session_state.processing = True
             st.rerun()
     
@@ -459,25 +459,26 @@ with col1:
     if st.session_state.processing and uploaded_file:
         with st.spinner("Processing document..."):
             # Extract text
-            st.info("📖 Extracting text from document...")
+            st.info("Extracting text from document...")
             filetype = uploaded_file.type
             extracted_text = extract_text(uploaded_file, filetype)
             st.session_state.extracted_text = extracted_text
             
             # Generate summary
-            st.info("🤖 Generating AI summary...")
+            st.info("Generating AI summary...")
             ai_summary = generate_summary(extracted_text, doc_type)
             st.session_state.ai_summary = ai_summary
             st.session_state.original_summary = ai_summary
             st.session_state.current_summary = ai_summary
             
             st.session_state.processing = False
-            st.success("✅ Document processed successfully!")
+            st.success("Document processed successfully!")
             time.sleep(1)
             st.rerun()
     
     # Show extracted text preview if available
     if st.session_state.extracted_text:
+        st.subheader("")
         st.markdown("### Extracted Text Preview")
         with st.expander("View extracted text", expanded=False):
             st.markdown(f'<div class="extraction-preview">{st.session_state.extracted_text[:500]}{"..." if len(st.session_state.extracted_text) > 500 else ""}</div>', unsafe_allow_html=True)
@@ -485,7 +486,7 @@ with col1:
 with col2:
     if st.session_state.ai_summary:
         # Summary header
-        st.markdown('<div class="summary-header">AI Generated Summary</div>', unsafe_allow_html=True)
+        st.markdown('<div class="summary-header">Document Summary</div>', unsafe_allow_html=True)
         
         # Create tabs for viewing formatted and editing plain text
         tab1, tab2 = st.tabs(["Formatted View", "Edit Text"])
@@ -513,7 +514,7 @@ with col2:
         # Info about editing
         st.markdown("""
         <div class="edit-info">
-        💡 <strong>Tip:</strong> Switch to "Edit Text" tab to make changes, then back to "Formatted View" to see the results.
+            <strong>Tip:</strong> Switch to "Edit Text" tab to make changes, then back to "Formatted View" to see the results.
         </div>
         """, unsafe_allow_html=True)
         
@@ -532,7 +533,7 @@ with col2:
         if st.session_state.current_summary:
             word_count = len(st.session_state.current_summary.split())
             char_count = len(st.session_state.current_summary)
-            st.markdown(f'<div class="stats-container">📊 {word_count} words, {char_count} characters</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="stats-container">{word_count} words, {char_count} characters</div>', unsafe_allow_html=True)
     
     else:
         # Welcome state
