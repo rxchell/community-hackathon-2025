@@ -170,6 +170,7 @@ st.markdown("""
     
     .stButton > button:hover {
         transform: translateY(-2px);
+        color: white;
         box-shadow: 0 8px 25px rgba(185, 87, 65, 0.3);
     }
     
@@ -187,6 +188,7 @@ st.markdown("""
     
     .stDownloadButton > button:hover {
         transform: translateY(-2px);
+        color: white;
         box-shadow: 0 8px 25px rgba(185, 87, 65, 0.3);
     }
     
@@ -294,6 +296,7 @@ st.markdown("""
     }
     
     .toggle-button:hover {
+        color: white
         background: #b95741;
     }
 </style>
@@ -582,21 +585,23 @@ with col1:
     
     # Process button
     if uploaded_file:
-        if st.button("🔍  Analyse Document", type="primary", use_container_width=True):
+        st.markdown('<div class="toggle-container">', unsafe_allow_html=True)
+        if st.button("Analyse Document", type="primary", use_container_width=True):
             st.session_state.processing = True
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Processing indicator
     if st.session_state.processing and uploaded_file:
         with st.spinner("Processing document..."):
             # Extract text
-            st.info("📖 Extracting text from document...")
+            st.info("Extracting text from document...")
             filetype = uploaded_file.type
             extracted_text = extract_text(uploaded_file, filetype)
             st.session_state.extracted_text = extracted_text
             
             # Generate summary
-            st.info("🤖 Generating AI summary...")
+            st.info("Generating AI summary...")
             ai_summary = generate_summary(extracted_text, doc_type)
             st.session_state.ai_summary = ai_summary
             st.session_state.original_summary = ai_summary
@@ -606,7 +611,7 @@ with col1:
             st.session_state.display_text = format_markdown_for_display(ai_summary)
             
             st.session_state.processing = False
-            st.success("✅ Document processed successfully!")
+            st.success("Document processed successfully!")
             time.sleep(1)
             st.rerun()
     
@@ -654,38 +659,40 @@ with col2:
         if st.session_state.edit_mode:
             st.markdown("""
             <div class="edit-info">
-            💡 <strong>Tip:</strong> You can edit the summary directly in the box above. Switch to View Mode to see the formatted version.
+                <strong>Tip:</strong> You can edit the summary directly in the box above. Switch to View Mode to see the formatted version.
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
             <div class="edit-info">
-            💡 <strong>Tip:</strong> Switch to Edit Mode to make changes to the summary.
+                <strong>Tip:</strong> Switch to Edit Mode to make changes to the summary.
             </div>
             """, unsafe_allow_html=True)
         
         # PDF download
         if st.session_state.current_summary:
             pdf_buffer = generate_pdf(st.session_state.display_text, doc_type)
+            st.markdown('<div class="toggle-container">', unsafe_allow_html=True)
             st.download_button(
-                "📄 Download PDF",
+                "Download PDF",
                 pdf_buffer,
                 f"summary_{doc_type.lower().replace(' ', '_')}.pdf",
                 "application/pdf",
                 use_container_width=True
             )
+            st.markdown('</div>', unsafe_allow_html=True)
         
         # Statistics
         if st.session_state.current_summary:
             word_count = len(st.session_state.current_summary.split())
             char_count = len(st.session_state.current_summary)
-            st.markdown(f'<div class="stats-container">📊 {word_count} words, {char_count} characters</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="stats-container">{word_count} words, {char_count} characters</div>', unsafe_allow_html=True)
     
     else:
         # Welcome state
         st.markdown("""
         <div class="welcome-state">
-            <h3>👋 Welcome to SafeShelter AI</h3>
+            <h3>Welcome to SafeShelter AI</h3>
             <p>Upload a document to get started with AI-powered case analysis.</p>
             <p>The system will extract text and generate a structured summary focusing on:</p>
             <ul>
